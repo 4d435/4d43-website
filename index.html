@@ -111,7 +111,7 @@ body {
 
 		<script src="Buckshot Roulette.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"Buckshot Roulette","experimentalVK":false,"fileSizes":{"Buckshot Roulette.pck":965988636,"Buckshot Roulette.wasm":35739700},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"Buckshot Roulette","experimentalVK":false,"fileSizes":{"Buckshot Roulette.pck":111260312,"Buckshot Roulette.wasm":13422050},"focusCanvas":true,"gdnativeLibs":[],"godotVersion":"4.2.2","serviceWorker":null,"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -201,23 +201,25 @@ const engine = new Engine(GODOT_CONFIG);
 		// then patches window.fetch so Godot receives the merged files.
 		const PCK_PARTS  = 50; // part01 – part50
 		const WASM_PARTS = 2;  // part1 – part2
-		const PCK_NAME   = "Buckshot Roulette.pck";
-		const WASM_NAME  = "Buckshot Roulette.wasm";
+		const PCK_NAME   = 'Buckshot Roulette.pck';
+		const WASM_NAME  = 'Buckshot Roulette.wasm';
 
-		function zeroPad(n, pad) { return (pad && n < 10) ? "0" + n : String(n); }
+		function zeroPad(n, pad) { return (pad && n < 10) ? '0' + n : String(n); }
+		function assetUrl(fileName) { return encodeURI(fileName); }
 
 		function mergeParts(baseName, totalParts, pad) {
 			return new Promise(function(resolve, reject) {
 				var buffers = [];
 				var loaded = 0;
+				var encodedBaseName = assetUrl(baseName);
 				function fetchPart(index) {
 					if (index > totalParts) {
 						resolve(URL.createObjectURL(new Blob(buffers)));
 						return;
 					}
-					var url = baseName + ".part" + zeroPad(index, pad);
+					var url = encodedBaseName + '.part' + zeroPad(index, pad);
 					fetch(url).then(function(r) {
-						if (!r.ok) throw new Error("Missing part: " + url);
+						if (!r.ok) throw new Error('Missing part: ' + url);
 						return r.arrayBuffer();
 					}).then(function(buf) {
 						buffers.push(buf);
@@ -246,11 +248,12 @@ const engine = new Engine(GODOT_CONFIG);
 			var _origFetch = window.fetch;
 			window.fetch = function(url) {
 				var args = Array.prototype.slice.call(arguments, 1);
-				if (typeof url === "string") {
-					if (url.indexOf("Buckshot Roulette.pck") !== -1) {
+				if (typeof url === 'string') {
+					var normalizedUrl = encodeURI(url);
+					if (normalizedUrl.indexOf(encodeURI('Buckshot Roulette.pck')) !== -1) {
 						return _origFetch.apply(window, [pckBlobUrl].concat(args));
 					}
-					if (url.indexOf("Buckshot Roulette.wasm") !== -1) {
+					if (normalizedUrl.indexOf(encodeURI('Buckshot Roulette.wasm')) !== -1) {
 						return _origFetch.apply(window, [wasmBlobUrl].concat(args));
 					}
 				}
@@ -305,27 +308,27 @@ window.PeerBridge = (function() {
         config: {
           iceServers: [
             // Google STUN — fast, no auth needed
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
             // Open Relay TURN — free, no signup, bypasses most firewalls
             // Port 80 UDP
             {
-              urls: "turn:openrelay.metered.ca:80",
-              username: "openrelayproject",
-              credential: "openrelayproject"
+              urls: 'turn:openrelay.metered.ca:80',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
             },
             // Port 443 UDP
             {
-              urls: "turn:openrelay.metered.ca:443",
-              username: "openrelayproject",
-              credential: "openrelayproject"
+              urls: 'turn:openrelay.metered.ca:443',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
             },
             // Port 443 TCP — almost never blocked, same port as HTTPS
             // This is the one that bypasses school firewalls
             {
-              urls: "turn:openrelay.metered.ca:443?transport=tcp",
-              username: "openrelayproject",
-              credential: "openrelayproject"
+              urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
             }
           ]
         }
@@ -347,7 +350,7 @@ window.PeerBridge = (function() {
 
       peer.on('error', function(err) {
         console.error('[PeerBridge] PeerJS error:', err);
-        // If this is a "could not connect to peer" error, signal a join failure
+        // If this is a 'could not connect to peer' error, signal a join failure
         var msg = err.message || String(err);
         if (msg.indexOf('Could not connect to peer') !== -1 || err.type === 'peer-unavailable') {
           window._godot_lobby_join_error = 'Lobby not found or host has left.';
@@ -441,7 +444,7 @@ window.PeerBridge = (function() {
     if (incomingQueue.length > 0) {
       return incomingQueue.shift();
     }
-    return "";
+    return '';
   }
 
   function disconnect(peerId) {
@@ -470,7 +473,7 @@ window.PeerBridge = (function() {
       for (var id in connections) {
         try {
           if (connections[id].open) {
-            connections[id].send({"_keepalive": true});
+            connections[id].send({'_keepalive': true});
           }
         } catch(e) {}
       }
@@ -481,7 +484,7 @@ window.PeerBridge = (function() {
   function isAlive() { return !!(peer && !peer.destroyed); }
   function lockPeer() { locked = true; console.log('[PeerBridge] peer locked'); }
   function unlockPeer() { locked = false; console.log('[PeerBridge] peer unlocked'); }
-  function getMyId() { return myId || ""; }
+  function getMyId() { return myId || ''; }
   function getConnectedPeers() { return Object.keys(connections); }
 
   return {
